@@ -1,5 +1,6 @@
 function [AoI] = anaReguFCFS(p, r, N, k)
 
+
 pG = r / (p + r);
 pB = p / (p + r);
 
@@ -21,50 +22,150 @@ for i = 1 : N
     pa_b_B(i + 1, 2 : i + 1) = p * pa_b_G(i, 1 : i) + (1 - r) * pa_b_B(i, 2 : i + 1);
 end
 
-pa_b = pa_b_G  + pa_b_B;
+
+pa_b_GG = zeros(k + 1, k + 1);
+% pa_b_GG(2) = p*(1-r)*r;
+% pa_b_GG(3) = 2*p*r*(1-p);
+% pa_b_GG(4) = (1-p)^3;
+pa_b_GG(2, 2) = (1-p);
 
 
-% ²Î¼Óµü´úµÄÖ»ÓĞp_0 - p_number ¹²¼Æ number + 1¸ö
-number = N;
-% ³õÊ¼»¯·ş´Ó¾ùÔÈ·Ö²¼
-% steadyPÎªÊı¾İ°üµ½´ï·¢ËÍ¶ËÊ±¶ÓÁĞ³¤¶ÈµÄÎÈÌ¬·Ö²¼
-steadyP = zeros(1, number + k);
-steadyP(number + 1 : -1 : 1) = 0.5.^(1 : number + 1);
-
-tempP = steadyP;
+pa_b_GB = zeros(k + 1, k + 1);
+% pa_b_GB(2) = p*(1-r)^2;
+% pa_b_GB(3) = p*r*p+(1-p)*p*(1-r);
+% pa_b_GB(4) = (1-p)^2*p;
+pa_b_GB(2, 2) = p;
 
 
 
+pa_b_BG = zeros(k + 1, k + 1);
+% pa_b_BG(1) = r*(1-r)^2;
+% pa_b_BG(2) = r*r*p+(1-p)*r*(1-r);
+% pa_b_BG(3) = r*(1-p)^2;
+pa_b_BG(2, 1) = r;
 
-%==========================================
-% Ó¦¸ÃÈçºÎµü´úµÄÇó½â¶ÓÁĞ³¤¶ÈµÄÎÈÌ¬·Ö²¼£¿
-%==========================================
-while 1
-    
-    % ¼ÆËãp_1 : p_n
-    
-    for i = 1 : number
-        temp = 0;
-        for j = i - 1 : k + i - 1
-            temp = temp + steadyP(j + 1) * pa_b(k + 1, j + 2 - i);
-        end
-        steadyP(i + 1) = temp;
+
+
+pa_b_BB = zeros(k + 1, k + 1);
+% pa_b_BB(1) = (1-r)^3;
+% pa_b_BB(2) = 2*p*r*(1-r);
+% pa_b_BB(3) = r*(1-p)*p;
+pa_b_BB(2, 1) = (1-r);
+
+for i = 2 : k
+    pa_b_BG(i + 1, 1) = r * pa_b_BB(i, 1);
+    pa_b_BB(i + 1, 1) = (1-r) * pa_b_BB(i, 1);
+    for j = 2 : i + 1
+        pa_b_GG(i + 1, j) = (1-p) * pa_b_GG(i, j - 1) + r * pa_b_GB(i, j);
+        pa_b_GB(i + 1, j) = p * pa_b_GG(i, j - 1) + (1-r) * pa_b_GB(i, j);
+        pa_b_BG(i + 1, j) = (1-p) * pa_b_BG(i, j - 1) + r * pa_b_BB(i, j);
+        pa_b_BB(i + 1, j) = p * pa_b_BG(i, j - 1) + (1-r) * pa_b_BB(i, j);
     end
-    
-     % ¼ÆËãp_0£¬¼´steadyP(1)
-    temp = 0;
-    
-    for i = 0 : k - 1
-        temp = temp + steadyP(i + 1) * sum(pa_b(k + 1, i + 2 : k + 1));
+end
+
+% å‚åŠ è¿­ä»£çš„åªæœ‰p_0 - p_number å…±è®¡ number + 1ä¸ª
+m = N;
+% steadyPä¸ºæ•°æ®åŒ…åˆ°è¾¾å‘é€ç«¯æ—¶é˜Ÿåˆ—é•¿åº¦çš„ç¨³æ€åˆ†å¸ƒ
+
+%======================================================
+% åº”è¯¥å¦‚ä½•è¿­ä»£çš„æ±‚è§£é˜Ÿåˆ—é•¿åº¦çš„ç¨³æ€åˆ†å¸ƒï¼Ÿè§£ä¸€ä¸ªm+1é˜¶çš„æ–¹é˜µ
+%======================================================
+% while 1
+%     
+%      % è®¡ç®—p_0ï¼Œå³steadyP(1)
+%     temp = 0;
+%     
+%     for i = 0 : k - 1
+%         temp = temp + steadyPG(i + 1) * sum(pa_b_GG(i + 2 : k + 1)) + ...
+%             steadyPB(i + 1) * sum(pa_b_BG(i + 2 : k + 1));
+%     end
+%     steadyPG(1) = temp;
+%     
+%     temp = 0;
+%     
+%     for i = 0 : k - 1
+%         temp = temp + steadyPG(i + 1) * sum(pa_b_GB(i + 2 : k + 1)) + ...
+%             steadyPB(i + 1) * sum(pa_b_BB(i + 2 : k + 1));
+%     end
+%     steadyPB(1) = temp;
+%     
+%     % è®¡ç®—p_1 : p_n
+%     
+%     for i = 1 : m
+%         temp = 0;
+%         for j = i - 1 : k + i - 1
+%             temp = temp + steadyPG(j + 1) * pa_b_GG(j + 2 - i) + ...
+%                 steadyPB(j + 1) * pa_b_BG(j + 2 - i);
+%         end
+%         steadyPG(i + 1) = temp;
+%     end
+%     
+%     for i = 1 : m
+%         temp = 0;
+%         for j = i - 1 : k + i - 1
+%             temp = temp + steadyPG(j + 1) * pa_b_GB(j + 2 - i) + ...
+%                 steadyPB(j + 1) * pa_b_BB(j + 2 - i);
+%         end
+%         steadyPB(i + 1) = temp;
+%     end
+%     
+%     steadyPG(m+2) = 1 - sum(steadyPG(1:m+1)) - sum(steadyPB(1:m+1));
+%     
+%     % è¿­ä»£ç»ˆæ­¢çš„æ¡ä»¶
+%     if(norm(tempPG - steadyPG, 2) < 1.0e-5 && norm(tempPB - steadyPB, 2) < 1.0e-5)
+%         break;
+%     end
+%     
+%     tempPG = steadyPG;
+%     tempPB = steadyPB;
+% end
+
+
+A = zeros(2 * m + 4, 2 * m + 4);
+b = zeros(2 * m + 4, 1);
+b(2 * m + 3, 1) = 1;
+% p0
+% p_0ç³»æ•°
+A(1,1) = sum(pa_b_GG(k + 1, 2 : k + 1)) - 1;
+A(1,2) = sum(pa_b_BG(k + 1, 2 : k + 1));
+A(2,1) = sum(pa_b_GB(k + 1, 2 : k + 1));
+A(2,2) = sum(pa_b_BB(k + 1, 2 : k + 1)) - 1;
+% p_1:p_{k-1}ç³»æ•°
+for j = 1 : k - 1
+    A(1, 2 * j + 1) = sum(pa_b_GG(k + 1, j + 2 : k + 1));
+    A(1, 2 * j + 2) = sum(pa_b_BG(k + 1, j + 2 : k + 1));
+    A(2, 2 * j + 1) = sum(pa_b_GB(k + 1, j + 2 : k + 1));
+    A(2, 2 * j + 2) = sum(pa_b_BB(k + 1, j + 2 : k + 1));
+end
+% p1~~p(m+2-k)
+for i = 1 : m + 2 - k
+    for j = i - 1 : i - 1 + k
+        A(2 * i + 1, 2 * j + 1) = pa_b_GG(k + 1, j + 2 - i);
+        A(2 * i + 1, 2 * j + 2) = pa_b_BG(k + 1, j + 2 - i);
+        A(2 * i + 2, 2 * j + 1) = pa_b_GB(k + 1, j + 2 - i);
+        A(2 * i + 2, 2 * j + 2) = pa_b_BB(k + 1, j + 2 - i);
     end
-    steadyP(1) = temp;
-    
-    % µü´úÖÕÖ¹µÄÌõ¼ş
-    if(norm(tempP - steadyP, 2) < 1.0e-4)
-        break;
+    A(2 * i + 1, 2 * i + 1) = A(2 * i + 1, 2 * i + 1) - 1;
+    A(2 * i + 2, 2 * i + 2) = A(2 * i + 2, 2 * i + 2) - 1;
+end
+for i = m + 3 - k : m
+    for j = i - 1 : m + 1
+        A(2 * i + 1, 2 * j + 1) = pa_b_GG(k + 1, j + 2 - i);
+        A(2 * i + 1, 2 * j + 2) = pa_b_BG(k + 1, j + 2 - i);
+        A(2 * i + 2, 2 * j + 1) = pa_b_GB(k + 1, j + 2 - i);
+        A(2 * i + 2, 2 * j + 2) = pa_b_BB(k + 1, j + 2 - i);
     end
-    
-    tempP = steadyP;
+    A(2 * i + 1, 2 * i + 1) = A(2 * i + 1, 2 * i + 1) - 1;
+    A(2 * i + 2, 2 * i + 2) = A(2 * i + 2, 2 * i + 2) - 1;
+end
+A(2 * m + 3, :) = 1;
+A(2 * m + 4, 2 * m + 4) = 1;
+% A(2 * m + 4, 2 * m + 4) = 0;
+steadyP_solve = pinv(A)*b;
+
+steadyP = zeros(1, m + 2);
+for i = 0 : m + 1
+    steadyP(i + 1) = steadyP_solve(2 * i + 1) + steadyP_solve(2 * i + 2);
 end
 
 latency = 0;
