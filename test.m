@@ -11,7 +11,6 @@ eta=1-2*p_vec;
 lambda=1/3;% need to be less than 0.5 to ensure stable queue
 k = 3;
 iter = 1000;
-limitN = 100;
 BFavgAoI_vec=zeros(iter,length(p_vec));
 BLavgAoI_vec=zeros(iter,length(p_vec));
 pFavgAoI_vec=zeros(iter,length(p_vec));
@@ -25,7 +24,7 @@ for i=1:length(p_vec)
          pFavgAoI_vec(j,i)=regularArrival_FCFS(p,p,k);
          pLavgAoI_vec(j,i)=regularArrival_LGFS(p,p,k);
     end
-    pFanaAoI(i) = anaReguFCFS(p, p, limitN, k);
+    pFanaAoI(i) = anaReguFCFS(p, p, 3);
 end
 BFAoIexpectation = mean(BFavgAoI_vec,1);
 BLAoIexpectation = mean(BLavgAoI_vec,1);
