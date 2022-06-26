@@ -1,4 +1,4 @@
-function [AoI] = anaReguFCFS(p, r, N, k)
+function [AoI] = anaReguFCFSVer1(p, r, N, k)
 
 
 pG = r / (p + r);
